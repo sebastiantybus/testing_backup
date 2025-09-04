@@ -23,11 +23,11 @@ jobs:
           role-to-assume: arn:aws:iam::135278927571:role/GitHub_Backup_OIDC_Role
           aws-region: eu-central-1
 
-      - name: Create Git bundle
+      - name: Mirror repository
         run: |
           mkdir -p backup
-          git bundle create backup/repo.bundle --all
+          git clone --mirror . backup/repo.git
 
-      - name: Upload bundle to S3
+      - name: Sync to S3
         run: |
-          aws s3 cp backup/repo.bundle s3://ifena-github-backup/${{ github.repository }}.bundle --storage-class STANDARD_IA
+          aws s3 sync backup/repo.git s3://ifena-github-backup/${{ github.repository }}.git --delete
