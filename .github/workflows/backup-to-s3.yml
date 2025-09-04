@@ -30,4 +30,4 @@ jobs:
 
       - name: Sync to S3
         run: |
-          aws s3 sync backup/repo.git s3://my-github-backups/${{ github.repository }}.git --delete
+          aws s3 sync backup/repo.git s3://ifena-github-backup/${{ github.repository }}.git --delete
