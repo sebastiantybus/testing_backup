@@ -1,0 +1,33 @@
+name: Backup to S3
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write 
+      contents: read
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::135278927571:role/GitHub_Backup_OIDC_Role
+          aws-region: eu-central-1
+
+      - name: Mirror repository
+        run: |
+          mkdir -p backup
+          git clone --mirror . backup/repo.git
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync backup/repo.git s3://my-github-backups/${{ github.repository }}.git --delete
