@@ -1,9 +1,9 @@
-name: Backup to S3
+name: Backup GitHub Repo to S3
 
 on:
   push:
     branches:
-      - '**'
+      - '**'  # Backup bei jedem Push
 
 jobs:
   backup:
@@ -13,26 +13,26 @@ jobs:
       contents: read
 
     steps:
-      # Optional: GitHub Repository auschecken, falls du lokal arbeiten willst
+      # 1️⃣ GitHub Repository auschecken (nur .git wird genutzt)
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Holt alle Branches und Tags
+          fetch-depth: 0  # Alle Branches und Tags
 
-      # AWS Credentials konfigurieren
+      # 2️⃣ AWS Credentials konfigurieren
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::135278927571:role/GitHub_Backup_OIDC_Role
           aws-region: eu-central-1
 
-      # Git Mirror erzeugen
-      - name: Mirror repository
+      # 3️⃣ Bare-Clone erstellen
+      - name: Create bare clone
         run: |
           mkdir -p backup
-          git clone --mirror .git backup/repo.git
+          git clone --bare . backup/repo.git
 
-      # Mirror zu S3 synchronisieren
-      - name: Sync to S3
+      # 4️⃣ Repo zu S3 hochladen
+      - name: Sync bare repo to S3
         run: |
           aws s3 sync backup/repo.git s3://ifena-github-backup/${{ github.repository }}.git --delete
